@@ -26,6 +26,10 @@ set -e
 # don't try to write to /root.
 export HOME=/opt/data
 
+mkdir -p /opt/data
+chown hermes:hermes /opt/data 2>/dev/null || true
+chmod u+rwx /opt/data 2>/dev/null || true
+
 cd /opt/data
 # shellcheck disable=SC1091
 . /opt/hermes/.venv/bin/activate
