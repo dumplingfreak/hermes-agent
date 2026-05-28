@@ -1,1 +1,1 @@
-{"deploy":{"startCommand":"hermes gateway run"}}
+{"deploy":{"startCommand":"chmod -R a+rwx /opt/data 2>/dev/null; hermes gateway run"}}
