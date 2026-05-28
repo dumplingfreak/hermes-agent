@@ -1,1 +1,1 @@
-{"deploy":{"startCommand":"gateway run"}}
+{"deploy":{"startCommand":"hermes gateway run"}}
