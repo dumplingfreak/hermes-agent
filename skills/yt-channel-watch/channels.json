@@ -1,0 +1,55 @@
+{
+  "channels": [
+    {
+      "id": "UCZ-J2m1AUSLnifUEKam5_dA",
+      "name": "Verified Investing (Gareth Soloway)",
+      "handle": "@VerifiedInvesting",
+      "domain": "finance",
+      "mode": "full",
+      "keywords": []
+    },
+    {
+      "id": "UCRvqjQPSeaWn-uEx-w0XOIg",
+      "name": "Benjamin Cowen",
+      "handle": "@BenjaminCowen",
+      "domain": "finance",
+      "mode": "full",
+      "keywords": []
+    },
+    {
+      "id": "UCxIU1RFIdDpvA8VOITswQ1A",
+      "name": "The Wolf Of All Streets (Scott Melker)",
+      "handle": "@ScottMelker",
+      "domain": "finance",
+      "mode": "transcript_only",
+      "keywords": []
+    },
+    {
+      "id": "UCnwxzpFzZNtLH8NgTeAROFA",
+      "name": "Krown",
+      "handle": "@Crown_Northampton",
+      "domain": "finance",
+      "mode": "full",
+      "keywords": []
+    },
+    {
+      "id": "UCwTu6kD2igaLMpxswtcdxlg",
+      "name": "Gareth Soloway (Pro Trader)",
+      "handle": "@GarethSolowayProTrader",
+      "domain": "finance",
+      "mode": "full",
+      "keywords": []
+    },
+    {
+      "id": "UClBMLpP3UHXLmgEypMmXPuA",
+      "name": "David Lin Report",
+      "handle": "@TheDavidLinReport",
+      "domain": "finance",
+      "mode": "transcript_only",
+      "keywords": []
+    }
+  ],
+  "state_file": "~/.hermes/skills/yt-channel-watch/state.json",
+  "max_videos_per_check": 5,
+  "lookback_days": 3
+}
