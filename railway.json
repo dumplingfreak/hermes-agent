@@ -1,1 +1,1 @@
-{"deploy":{"startCommand":"chmod -R a+rwx /opt/data 2>/dev/null; hermes gateway run || sleep 3600"}}
+{"deploy":{"startCommand":"chmod -R a+rwx /opt/data 2>/dev/null; printf '%s' \"$HERMES_CONFIG_YAML\" | base64 -d > /opt/data/config.yaml; hermes gateway run"}}
