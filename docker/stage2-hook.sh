@@ -71,6 +71,9 @@ if [ "$needs_chown" = true ]; then
     # their existing ownership.
     chown hermes:hermes "$HERMES_HOME" 2>/dev/null || \
         echo "[stage2] Warning: chown $HERMES_HOME failed (rootless container?) — continuing"
+    # Fallback for rootless runtimes (e.g. Railway Podman) where chown fails:
+    # make the volume root world-writable so hermes can create subdirectories.
+    chmod a+rwx "$HERMES_HOME" 2>/dev/null || true
     # Hermes-owned subdirs: recursive chown is safe here because these are
     # created and managed exclusively by hermes (see the s6-setuidgid mkdir
     # -p block below for the canonical list).
