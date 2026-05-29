@@ -1,1 +1,1 @@
-{"deploy":{"startCommand":"hermes gateway run"}}
+{"deploy":{"startCommand":"if [ ! -f /opt/data/memories/MEMORY.md ]; then mkdir -p /opt/data/memories && cp -r /opt/hermes/docker/memories/. /opt/data/memories/ 2>/dev/null || true; fi; git -C /opt/data/vault pull --quiet 2>/dev/null || git clone --quiet https://x-access-token:$GITHUB_TOKEN@github.com/dumplingfreak/gia-vault /opt/data/vault 2>/dev/null || true; hermes gateway run"}}
