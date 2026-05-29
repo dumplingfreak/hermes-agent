@@ -41,7 +41,21 @@ Pipeline per channel mode (set in `channels.json`):
 No confirmation steps. No report writing. After archive is committed, tell Gia to run `ingest finance` in Claude Code.
 
 ## Knowledge Vault
-The vault is at ~/vault. For research and queries, use `~/vault/wiki/` (distilled knowledge). `~/vault/raw/` is the evidence archive written by the ingest pipeline — do not query it for analysis, but do write to it during acquisition.
+The vault is at ~/vault. It is synced from GitHub (`dumplingfreak/gia-vault`). Always pull before reading so you have the latest content:
+
+```bash
+git -C ~/vault pull --rebase 2>/dev/null || true
+```
+
+After writing to `~/vault/raw/` or `~/vault/wiki/`, commit and push:
+
+```bash
+git -C ~/vault add <file>
+git -C ~/vault commit -m "hermes: <short description>"
+git -C ~/vault push
+```
+
+For research and queries, use `~/vault/wiki/` (distilled knowledge). `~/vault/raw/` is the evidence archive written by the ingest pipeline — do not query it for analysis, but do write to it during acquisition.
 
 Structure:
 - ~/vault/wiki/finance/crypto/     — per-coin files (BTC, ETH, SOL, XRP, SUI, NEAR, LINK, AVAX, DOT, BNB, TRX, MATIC, XLM, ARB...)
