@@ -163,10 +163,17 @@ seed_one ".env" ".env.example"
 seed_one "config.yaml" "cli-config.yaml.example"
 seed_one "SOUL.md" "docker/SOUL.md"
 
-# --- Seed memories (only on first boot, no-overwrite) ---
+# --- Seed memories if missing or empty ---
 s6-setuidgid hermes mkdir -p "$HERMES_HOME/memories" 2>/dev/null || true
-seed_one "memories/MEMORY.md" "docker/memories/MEMORY.md"
-seed_one "memories/USER.md" "docker/memories/USER.md"
+seed_if_empty() {
+    dest=$1
+    src=$2
+    if [ ! -s "$HERMES_HOME/$dest" ] && [ -f "$INSTALL_DIR/$src" ]; then
+        s6-setuidgid hermes cp "$INSTALL_DIR/$src" "$HERMES_HOME/$dest"
+    fi
+}
+seed_if_empty "memories/MEMORY.md" "docker/memories/MEMORY.md"
+seed_if_empty "memories/USER.md" "docker/memories/USER.md"
 
 # --- Clone vault on first boot, pull on restart ---
 if [ -n "${GITHUB_TOKEN:-}" ]; then
