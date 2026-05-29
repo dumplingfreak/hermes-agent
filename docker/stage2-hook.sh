@@ -163,6 +163,22 @@ seed_one ".env" ".env.example"
 seed_one "config.yaml" "cli-config.yaml.example"
 seed_one "SOUL.md" "docker/SOUL.md"
 
+# --- Seed memories (only on first boot, no-overwrite) ---
+s6-setuidgid hermes mkdir -p "$HERMES_HOME/memories" 2>/dev/null || true
+seed_one "memories/MEMORY.md" "docker/memories/MEMORY.md"
+seed_one "memories/USER.md" "docker/memories/USER.md"
+
+# --- Clone vault on first boot, pull on restart ---
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    if [ -d "$HERMES_HOME/vault/.git" ]; then
+        s6-setuidgid hermes git -C "$HERMES_HOME/vault" pull --quiet 2>/dev/null || true
+    else
+        s6-setuidgid hermes git clone --quiet \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/dumplingfreak/gia-vault" \
+            "$HERMES_HOME/vault" 2>/dev/null || true
+    fi
+fi
+
 # .env holds API keys and secrets — restrict to owner-only access. Applied
 # unconditionally (not only on first-seed) so a host-mounted .env that was
 # created with a permissive umask gets tightened on every container start.
