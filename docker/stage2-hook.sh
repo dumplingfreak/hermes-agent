@@ -138,6 +138,7 @@ s6-setuidgid hermes mkdir -p \
     "$HERMES_HOME/hooks" \
     "$HERMES_HOME/memories" \
     "$HERMES_HOME/skills" \
+    "$HERMES_HOME/scripts" \
     "$HERMES_HOME/skins" \
     "$HERMES_HOME/plans" \
     "$HERMES_HOME/workspace" \
@@ -255,6 +256,25 @@ if [ -z "${AGENT_BROWSER_EXECUTABLE_PATH:-}" ] && \
     else
         echo "[stage2] Warning: no Chromium binary under $PLAYWRIGHT_BROWSERS_PATH; browser tool may fail"
     fi
+fi
+
+# --- Decision Engine Tier-1 setup ---
+# 1. Ensure scripts dir exists (Hermes --script looks here)
+s6-setuidgid hermes mkdir -p "$HERMES_HOME/scripts"
+
+# 2. Copy runner script from Docker image into scripts dir
+if [ -f "$INSTALL_DIR/docker/scripts/decision-engine-tier1.sh" ]; then
+    s6-setuidgid hermes cp \
+        "$INSTALL_DIR/docker/scripts/decision-engine-tier1.sh" \
+        "$HERMES_HOME/scripts/decision-engine-tier1.sh"
+    chmod +x "$HERMES_HOME/scripts/decision-engine-tier1.sh" 2>/dev/null || true
+fi
+
+# 3. Register cron job if not already present (idempotent Python seeder)
+if [ -f "$INSTALL_DIR/docker/cron/seed-decision-cron.py" ]; then
+    s6-setuidgid hermes "$INSTALL_DIR/.venv/bin/python" \
+        "$INSTALL_DIR/docker/cron/seed-decision-cron.py" \
+        || echo "[stage2] Warning: decision-engine cron seeding failed; continuing"
 fi
 
 echo "[stage2] Setup complete; starting user services"

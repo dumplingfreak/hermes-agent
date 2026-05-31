@@ -1,0 +1,39 @@
+{
+  "_comment": "Tier-1 daily feed config. Edit watchlist/thresholds here, not in the script.",
+  "watchlist": [
+    {"label": "BTC",            "symbol": "BTC-USD",    "class": "crypto"},
+    {"label": "ETH",            "symbol": "ETH-USD",    "class": "crypto"},
+    {"label": "Gold",           "symbol": "GC=F",       "class": "metal"},
+    {"label": "Silver",         "symbol": "SI=F",       "class": "metal"},
+    {"label": "Brent oil",      "symbol": "BZ=F",       "class": "oil"},
+    {"label": "DXY",            "symbol": "DX-Y.NYB",   "class": "fx"},
+    {"label": "US 10y yield",   "symbol": "^TNX",       "class": "rates"},
+    {"label": "S&P 500",        "symbol": "^GSPC",      "class": "equity"},
+    {"label": "Nasdaq",         "symbol": "^IXIC",      "class": "equity"},
+    {"label": "USD/IDR",        "symbol": "IDR=X",      "class": "fx"},
+    {"label": "EUR/USD",        "symbol": "EURUSD=X",   "class": "fx"},
+    {"label": "VIX",            "symbol": "^VIX",       "class": "vol"}
+  ],
+  "move_triggers_pct": {
+    "crypto": 5.0,
+    "metal": 2.5,
+    "oil": 4.0,
+    "equity": 1.5,
+    "rates": 4.0,
+    "fx": 0.8,
+    "vol": 15.0
+  },
+  "watch_levels": [
+    {"label": "BTC", "symbol": "BTC-USD", "level": 73000, "note": "structural knife-edge; below -> $60k risk (vault)", "proximity_pct": 1.5},
+    {"label": "BTC", "symbol": "BTC-USD", "level": 78000, "note": "upside reclaim -> squeeze/Iran-deal confirmation trigger", "proximity_pct": 1.5}
+  ],
+  "_watch_level_note": "Edge-triggered: a watch level fires only when price CROSSES it, or is near AND has moved >= watch_level_min_move_pct since the last card. Mere lingering near a level does NOT re-fire (kills daily spam).",
+  "watch_level_min_move_pct": 3.0,
+  "news_feeds": [
+    {"name": "CoinDesk", "url": "https://www.coindesk.com/arc/outboundfeeds/rss/"},
+    {"name": "Fed press", "url": "https://www.federalreserve.gov/feeds/press_all.xml"},
+    {"name": "MarketWatch", "url": "http://feeds.marketwatch.com/marketwatch/topstories/"}
+  ],
+  "news_limit": 9,
+  "output_dir": ".."
+}
