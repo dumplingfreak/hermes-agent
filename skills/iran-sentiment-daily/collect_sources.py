@@ -28,7 +28,7 @@ from datetime import datetime, timezone, timedelta
 HERE = os.path.dirname(os.path.abspath(__file__))
 UA = {"User-Agent": "Mozilla/5.0 (decision-engine iran-sentiment collector)"}
 DEFAULT_OUTPUT = os.path.expanduser(
-    os.environ.get("HERMES_HOME", "~") + "/vault/raw/finance/decision_engine/iran_sentiment"
+    os.environ.get("HERMES_HOME", "~") + "/vault/01_RAW/finance/decision_engine/iran_sentiment"
 )
 
 

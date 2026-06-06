@@ -30,13 +30,13 @@ Pipeline per channel mode (set in `channels.json`):
 1. Extract transcript via yt-dlp captions
 2. If no captions: download audio → Groq transcription (split into 10-min chunks if video > 30 min)
 3. Download HD video (720p) → extract frames at 1/30s → keep video in archive
-4. Save to `~/vault/raw/finance/youtube/YYYY-MM-DD_[slug]/` with README
+4. Save to `~/vault/01_RAW/finance/YYYY-MM-DD_[slug]/` with README
 
 **mode=transcript_only** (Scott Melker, David Lin):
 1. Extract transcript via yt-dlp captions
 2. If no captions: Groq transcription (chunked if > 30 min)
 3. No video download, no frames
-4. Save to `~/vault/raw/finance/youtube/YYYY-MM-DD_[slug]/` with README
+4. Save to `~/vault/01_RAW/finance/YYYY-MM-DD_[slug]/` with README
 
 No confirmation steps. No report writing. After archive is committed, tell Gia to run `ingest finance` in Claude Code.
 
@@ -47,7 +47,7 @@ The vault is at ~/vault. It is synced from GitHub (`dumplingfreak/gia-vault`). A
 git -C ~/vault pull --rebase 2>/dev/null || true
 ```
 
-After writing to `~/vault/raw/` or `~/vault/wiki/`, commit and push:
+After writing to `~/vault/01_RAW/`, `~/vault/02_LIVE/`, `~/vault/03_BRAIN/`, or `~/vault/05_LOGS/`, commit and push:
 
 ```bash
 git -C ~/vault add <file>
@@ -55,17 +55,17 @@ git -C ~/vault commit -m "hermes: <short description>"
 git -C ~/vault push
 ```
 
-For research and queries, use `~/vault/wiki/` (distilled knowledge). `~/vault/raw/` is the evidence archive written by the ingest pipeline — do not query it for analysis, but do write to it during acquisition.
+For research and queries, use `~/vault/03_BRAIN/` (distilled knowledge). `~/vault/01_RAW/` is the evidence archive written by the ingest pipeline — do not query it for analysis, but do write to it during acquisition.
 
 Structure:
-- ~/vault/wiki/finance/crypto/     — per-coin files (BTC, ETH, SOL, XRP, SUI, NEAR, LINK, AVAX, DOT, BNB, TRX, MATIC, XLM, ARB...)
-- ~/vault/wiki/finance/stocks/     — stock files (NVDA, MU, CCJ, MSTR, INTC, SPACEX, CBRS...)
-- ~/vault/wiki/finance/strategies/ — investment strategies and frameworks
-- ~/vault/wiki/finance/concepts/   — macro concepts (Fed policy, cycles, theses...)
-- ~/vault/wiki/finance/traders/    — analyst profiles (Gareth Soloway, Ben Cowen, etc.)
-- ~/vault/wiki/finance/reports/    — recent research reports
-- ~/vault/wiki/finance/master_index.md — start here for finance orientation
-- ~/vault/wiki/tech/               — AI tools, Claude Code, trading automation
+- ~/vault/03_BRAIN/finance/assets/crypto/     — per-coin files (BTC, ETH, SOL, XRP, SUI, NEAR, LINK, AVAX, DOT, BNB, TRX, MATIC, XLM, ARB...)
+- ~/vault/03_BRAIN/finance/assets/stocks/     — stock files (NVDA, MU, CCJ, MSTR, INTC, SPACEX, CBRS...)
+- ~/vault/03_BRAIN/finance/strategies/ — investment strategies and frameworks
+- ~/vault/03_BRAIN/finance/concepts/   — macro concepts (Fed policy, cycles, theses...)
+- ~/vault/03_BRAIN/finance/people/    — analyst profiles (Gareth Soloway, Ben Cowen, etc.)
+- ~/vault/05_LOGS/ingest_reports/finance/    — recent research reports
+- ~/vault/03_BRAIN/finance/master_index.md — start here for finance orientation
+- ~/vault/03_BRAIN/tech/               — AI tools, Claude Code, trading automation
 
 When doing financial research:
 1. Read the relevant coin/stock file first for existing context
@@ -85,7 +85,7 @@ When doing financial research:
 When running the daily yt-channel-watch cron:
 - Scan all 6 channels for new videos (last 3 days)
 - Run video-ingest (raw acquisition only) for one new video per run
-- Commit the raw archive to `~/vault/raw/finance/youtube/`
+- Commit the raw archive to `~/vault/01_RAW/finance/`
 - Report which archives are ready for `ingest finance` in Claude Code
 - Do NOT write wiki reports — that is Claude Code's job
 

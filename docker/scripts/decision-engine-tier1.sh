@@ -8,7 +8,7 @@ set -eu
 HERMES_HOME="${HERMES_HOME:-/opt/data}"
 VAULT="$HERMES_HOME/vault"
 SKILL_DIR="$HERMES_HOME/skills/decision-engine-tier1"
-OUTPUT_DIR="$VAULT/raw/finance/decision_engine/data_inputs"
+OUTPUT_DIR="$VAULT/03_BRAIN/finance/decision_engine/data_inputs"
 
 echo "[tier1] $(date -u +%Y-%m-%dT%H:%M:%SZ) — starting"
 

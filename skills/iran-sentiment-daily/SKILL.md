@@ -22,7 +22,7 @@ It prints `bundle_written=<path>`. Read that file. It groups headlines by camp (
 - If the Twitter line says the Apify token isn't set, just proceed without it — note it once at the end.
 
 ## Step 2 — Interpret (this is the value)
-Read the source bundle against the actor model `wiki/finance/decision_engine/actor_models/iran_us_nuclear.md` (pull the vault first). Produce a read that a smart, busy reader could not get from any single outlet:
+Read the source bundle against the actor model `03_BRAIN/finance/decision_engine/actor_models/iran_us_nuclear.md` (pull the vault first). Produce a read that a smart, busy reader could not get from any single outlet:
 
 1. **What each camp is signaling** — separate the Persian hardline (Tasnim/Fars/Kayhan) from the regime-security channel (Nour News / SNSC) and the reformist press; the pro-Iran Arab axis (Al Mayadeen/Al-Akhbar) from the Gulf (Al Arabiya/Asharq); Israeli domestic (Ynet/Israel Hayom, Hebrew) from its English hawk press; US right from US left.
 2. **Where the framings diverge** — the gap between what Tehran tells Iranians and what Israel/Gulf/West say is itself the signal. Flag genuine divergence vs everyone converging.
@@ -30,7 +30,7 @@ Read the source bundle against the actor model `wiki/finance/decision_engine/act
 4. **Grade the outcome probabilities.** The model's current split is **Stalemate ~50% / War resumes ~30% / Ambiguous fudge ~20%**, plus Gia's gut call ("no clean deal, war resumes"). State whether today's cross-spectrum signal **supports, weakens, or leaves unchanged** each, and your updated rough split. Be conservative — do not thrash the numbers on one day of noise; move them only on a real shift and say which observable drove it.
 
 ## Step 3 — Write to the vault
-- **Always** append a dated entry to `wiki/finance/decision_engine/actor_models/iran_us_nuclear_sentiment_log.md` (create it if missing, newest entries at top): date, one-line state classification (De-escalation / Stalemate / Breakdown-risk), the per-camp read (2–4 lines), the graded probability line, and the single indicator to watch next.
+- **Always** append a dated entry to `03_BRAIN/finance/decision_engine/actor_models/iran_us_nuclear_sentiment_log.md` (create it if missing, newest entries at top): date, one-line state classification (De-escalation / Stalemate / Breakdown-risk), the per-camp read (2–4 lines), the graded probability line, and the single indicator to watch next.
 - **Only when the signal materially shifts the picture**, also edit the probability table / Gia's-gut-call calibration in `iran_us_nuclear.md`, and add a one-line dated changelog note there explaining why.
 - Commit and push the vault with a message like `hermes: iran-sentiment <date>` (pull --rebase first; the finance cron writes here too).
 

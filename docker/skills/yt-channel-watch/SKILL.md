@@ -9,7 +9,7 @@ Check configured finance channels for videos published in the last 3 days and in
 
 ## CRITICAL RULES
 - **No confirmation steps** — run the full pipeline autonomously start to finish
-- **Skip already-ingested videos** — check BOTH state.json AND the vault (existing reports under `~/vault/wiki/finance/reports/`) before ingesting. State.json can be stale if a prior run wrote the report but crashed before updating state.
+- **Skip already-ingested videos** — check BOTH state.json AND the vault (existing reports under `~/vault/05_LOGS/ingest_reports/finance/`) before ingesting. State.json can be stale if a prior run wrote the report but crashed before updating state.
 - **Do not keyword-skip finance videos** — channels are curated by Gia; treat recent videos from these channels as relevant unless they are shorts/ads/trailers under 3 min or already ingested
 - **Ingest one new video per run** — if the first candidate is already ingested or skipped for a hard reason, continue down the candidate list until one new eligible video is ingested or no candidates remain
 - **Only consider last 3 days** — ignore videos older than the rolling `lookback_days` window in `channels.json`
@@ -19,7 +19,7 @@ Check configured finance channels for videos published in the last 3 days and in
 ---
 
 ## PITFALLS
-- **State.json desync**: `state.json` is the source of truth for *what was processed this session*, not for what exists in the vault. Always search `~/vault/wiki/finance/reports/` for existing reports matching a video's title or upload date before declaring it "new." If a report already exists, add the video_id to state.json's `ingested` list rather than re-ingesting.
+- **State.json desync**: `state.json` is the source of truth for *what was processed this session*, not for what exists in the vault. Always search `~/vault/05_LOGS/ingest_reports/finance/` for existing reports matching a video's title or upload date before declaring it "new." If a report already exists, add the video_id to state.json's `ingested` list rather than re-ingesting.
 - **Flat-playlist loses upload dates**: `--flat-playlist --print %(upload_date)s` returns "NA" for many channels. After identifying candidate videos, fetch actual dates via `--dump-json` on each before deciding which is newest.
 - **Backup may timeout**: `scripts/backup_to_drive.sh` can hang. Run it in background (notify_on_complete=true) or skip if it's non-critical. The vault is the source of truth; Drive is a mirror.
 
@@ -132,7 +132,7 @@ import json, os, glob, re
 with open('/tmp/yt_new_videos.json') as f:
     candidates = json.load(f)
 
-reports_dir = os.path.expanduser('~/vault/wiki/finance/reports/')
+reports_dir = os.path.expanduser('~/vault/05_LOGS/ingest_reports/finance/')
 existing_reports = os.listdir(reports_dir)
 
 truly_new = []

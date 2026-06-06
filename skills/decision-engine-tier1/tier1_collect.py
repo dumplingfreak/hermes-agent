@@ -23,6 +23,32 @@ from datetime import datetime, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 UA = {"User-Agent": "Mozilla/5.0 (decision-engine tier1 collector)"}
+CANONICAL_REL = os.path.join("vault", "03_BRAIN", "finance", "decision_engine", "data_inputs")
+RETIRED_MARKERS = (
+    os.path.join("vault", "wiki", "finance", "decision_engine"),
+    os.path.join("vault", "raw", "finance", "decision_engine"),
+)
+
+
+def canonical_output_dir():
+    home = os.environ.get("HERMES_HOME") or os.environ.get("HOME") or os.path.expanduser("~")
+    return os.path.normpath(os.path.join(home, CANONICAL_REL))
+
+
+def resolve_output_dir(requested):
+    """Force v2 decision-engine writes into 03_BRAIN even if an old cron arg remains."""
+    canonical = canonical_output_dir()
+    if not requested:
+        return canonical
+
+    out_dir = os.path.normpath(requested)
+    for marker in RETIRED_MARKERS:
+        if marker in out_dir:
+            print(f"[warn] retired output path requested: {out_dir}", file=sys.stderr)
+            print(f"[warn] redirecting to canonical v2 path: {canonical}", file=sys.stderr)
+            return canonical
+
+    return out_dir
 
 
 def load_config():
@@ -230,10 +256,7 @@ def main():
 
     news = fetch_news(cfg.get("news_feeds", []), cfg.get("news_limit", 8))
 
-    if args.output_dir:
-        out_dir = os.path.normpath(args.output_dir)
-    else:
-        out_dir = os.path.normpath(os.path.join(HERE, cfg.get("output_dir", ".."), "data_inputs"))
+    out_dir = resolve_output_dir(args.output_dir)
 
     state = load_state(out_dir)
     fired, new_state = evaluate_triggers(rows, cfg, state, date_str)

@@ -234,15 +234,15 @@ Archive folder paths by domain:
 
 | Domain | Path |
 |---|---|
-| `finance` | `~/vault/raw/finance/youtube/YYYY-MM-DD_[analyst]_[topic_slug]/` |
-| `psychology` | `~/vault/raw/psychology/youtube/YYYY-MM-DD_[source]_[topic_slug]/` |
-| `tech` | `~/vault/raw/tech/youtube/YYYY-MM-DD_[source]_[topic_slug]/` |
-| `other` | `~/vault/raw/other/YYYY-MM-DD_[source]_[topic_slug]/` |
+| `finance` | `~/vault/01_RAW/finance/YYYY-MM-DD_[analyst]_[topic_slug]/` |
+| `psychology` | `~/vault/01_RAW/psychology/youtube/YYYY-MM-DD_[source]_[topic_slug]/` |
+| `tech` | `~/vault/01_RAW/tech/youtube/YYYY-MM-DD_[source]_[topic_slug]/` |
+| `other` | `~/vault/01_RAW/other/YYYY-MM-DD_[source]_[topic_slug]/` |
 
 Use lowercase, hyphenated slugs. Keep it short (analyst + 2-3 topic words).
 
 ```bash
-ARCHIVE=~/vault/raw/finance/youtube/YYYY-MM-DD_[slug]
+ARCHIVE=~/vault/01_RAW/finance/YYYY-MM-DD_[slug]
 mkdir -p "$ARCHIVE/visuals"  # only needed for full mode
 
 # Always copy
@@ -282,7 +282,7 @@ Write `README.md`:
 ## Status
 
 Raw only. Run `ingest finance` in Claude Code to generate the wiki report at:
-`wiki/finance/reports/YYYYMMDD_[Analyst]_[Topic].md`
+`05_LOGS/ingest_reports/finance/YYYYMMDD_[Analyst]_[Topic].md`
 ```
 
 **Transcript-only mode:**
@@ -305,7 +305,7 @@ Raw only. Run `ingest finance` in Claude Code to generate the wiki report at:
 ## Status
 
 Raw only. Run `ingest finance` in Claude Code to generate the wiki report at:
-`wiki/finance/reports/YYYYMMDD_[Analyst]_[Topic].md`
+`05_LOGS/ingest_reports/finance/YYYYMMDD_[Analyst]_[Topic].md`
 ```
 
 ---
