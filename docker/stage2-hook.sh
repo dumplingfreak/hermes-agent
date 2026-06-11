@@ -277,13 +277,4 @@ if [ -f "$INSTALL_DIR/docker/cron/seed-decision-cron.py" ]; then
         || echo "[stage2] Warning: decision-engine cron seeding failed; continuing"
 fi
 
-# --- Iran cross-spectrum sentiment cron (agent + skill) ---
-# Skill files (collect_sources.py, sources_config.json, SKILL.md) are synced into
-# $HERMES_HOME/skills by skills_sync.py above. Here we just register the cron job.
-if [ -f "$INSTALL_DIR/docker/cron/seed-iran-cron.py" ]; then
-    s6-setuidgid hermes "$INSTALL_DIR/.venv/bin/python" \
-        "$INSTALL_DIR/docker/cron/seed-iran-cron.py" \
-        || echo "[stage2] Warning: iran-sentiment cron seeding failed; continuing"
-fi
-
 echo "[stage2] Setup complete; starting user services"

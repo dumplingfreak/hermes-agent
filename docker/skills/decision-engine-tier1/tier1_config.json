@@ -35,5 +35,55 @@
     {"name": "MarketWatch", "url": "http://feeds.marketwatch.com/marketwatch/topstories/"}
   ],
   "news_limit": 9,
-  "output_dir": ".."
+  "output_dir": "..",
+  "geopolitical_sentiment": {
+    "keywords": [
+      "war",
+      "strike",
+      "strikes",
+      "iran",
+      "israel",
+      "hormuz",
+      "nuclear",
+      "missile",
+      "oil",
+      "sanctions",
+      "attack",
+      "attacks"
+    ],
+    "max_headlines": 3
+  },
+  "polymarket": {
+    "enabled": true,
+    "api_base": "https://gamma-api.polymarket.com",
+    "page_limit": 100,
+    "pages": 15,
+    "min_liquidity": 2000,
+    "max_rows": 12,
+    "max_results_per_topic": 3,
+    "trigger_move_pp": 10.0,
+    "watchlist": [
+      {
+        "label": "Iran / Israel conflict",
+        "any": ["iran nuke", "iran", "hormuz", "israel strike", "nuclear"],
+        "exclude": ["fifa", "world cup", "album", "gta", "indonesia normalize", "syria normalize"]
+      },
+      {
+        "label": "US recession / stress",
+        "any": ["recession", "bank bailout"],
+        "exclude": ["album", "gta"]
+      },
+      {
+        "label": "Fed decisions",
+        "any": ["fed", "federal reserve", "rate cut", "rate hike"],
+        "exclude": ["album", "gta"]
+      },
+      {
+        "label": "BTC year-end ranges",
+        "any": ["bitcoin", "btc"],
+        "all": ["2026"],
+        "exclude": ["album", "gta", "fifa"]
+      }
+    ]
+  }
 }
