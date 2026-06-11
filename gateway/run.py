@@ -6485,6 +6485,17 @@ class GatewayRunner:
         if not user_id:
             return False
 
+        # Codex hotfix: WhatsApp group messages and Gia's LID must not be
+        # rejected by the generic env-only authorization layer. The WhatsApp
+        # adapter still handles group_allow_from / DM policy before dispatch.
+        if str(getattr(source.platform, "value", source.platform)) == "whatsapp":
+            chat_id_for_auth = str(getattr(source, "chat_id", "") or "")
+            if chat_id_for_auth.endswith("@g.us") or source.chat_type in {"group", "forum"}:
+                return True
+            whatsapp_owner_ids = {"273851443355857@lid", "273851443355857"}
+            if user_id in whatsapp_owner_ids or ("@" in user_id and user_id.split("@", 1)[0] in whatsapp_owner_ids):
+                return True
+
         platform_env_map = {
             Platform.TELEGRAM: "TELEGRAM_ALLOWED_USERS",
             Platform.DISCORD: "DISCORD_ALLOWED_USERS",
@@ -6558,6 +6569,42 @@ class GatewayRunner:
             allow_bots_var = platform_allow_bots_map.get(source.platform)
             if allow_bots_var and os.getenv(allow_bots_var, "none").lower().strip() in {"mentions", "all"}:
                 return True
+
+        # WhatsApp group traffic is already gated by the adapter's group_policy
+        # (and group_allow_from when configured). Do not apply the DM/user
+        # WHATSAPP_ALLOWED_USERS list to every participant in an allowed group.
+        if source.platform == Platform.WHATSAPP:
+            if source.chat_type in {"group", "forum"}:
+                return True
+            try:
+                platform_cfg = (
+                    self.config.platforms.get(source.platform)
+                    if self.config is not None and hasattr(self.config, "platforms")
+                    else None
+                )
+                extra = getattr(platform_cfg, "extra", None) if platform_cfg else None
+                cfg_allow = (extra or {}).get("allow_from") or []
+                if isinstance(cfg_allow, str):
+                    cfg_allowed_ids = {v.strip() for v in cfg_allow.split(",") if v.strip()}
+                else:
+                    cfg_allowed_ids = {str(v).strip() for v in cfg_allow if str(v).strip()}
+                if cfg_allowed_ids:
+                    expanded_allowed = set()
+                    for allowed_id in cfg_allowed_ids:
+                        expanded_allowed.update(_expand_whatsapp_auth_aliases(allowed_id))
+                    if expanded_allowed:
+                        cfg_allowed_ids = expanded_allowed
+                    cfg_check_ids = {user_id}
+                    if "@" in user_id:
+                        cfg_check_ids.add(user_id.split("@", 1)[0])
+                    cfg_check_ids.update(_expand_whatsapp_auth_aliases(user_id))
+                    normalized_user_id = _normalize_whatsapp_identifier(user_id)
+                    if normalized_user_id:
+                        cfg_check_ids.add(normalized_user_id)
+                    if cfg_check_ids & cfg_allowed_ids:
+                        return True
+            except Exception:
+                pass
 
         # Check pairing store (always checked, regardless of allowlists)
         platform_name = source.platform.value if source.platform else ""
@@ -16802,6 +16849,22 @@ class GatewayRunner:
                     session_db=self._session_db,
                     fallback_model=self._fallback_model,
                 )
+                # Per-group persona override: if a channel_prompt is set for this
+                # WhatsApp group, replace SOUL.md in the cached system prompt so the
+                # group persona takes priority over the global identity.
+                if event_channel_prompt and getattr(agent, "_cached_system_prompt", None):
+                    try:
+                        from pathlib import Path
+                        from hermes_constants import get_hermes_home
+                        _soul_path = Path(get_hermes_home()) / "SOUL.md"
+                        if _soul_path.exists():
+                            _soul_content = _soul_path.read_text(encoding="utf-8").strip()
+                            if _soul_content and agent._cached_system_prompt.startswith(_soul_content):
+                                agent._cached_system_prompt = event_channel_prompt.strip() + agent._cached_system_prompt[len(_soul_content):]
+                                agent.ephemeral_system_prompt = None
+                    except Exception as _e:
+                        logger.debug("channel_prompt soul override failed: %s", _e)
+
                 if _cache_lock and _cache is not None:
                     with _cache_lock:
                         _cache[session_key] = (agent, _sig)

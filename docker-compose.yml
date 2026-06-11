@@ -31,13 +31,14 @@ services:
     build: .
     image: hermes-agent
     container_name: hermes
-    restart: unless-stopped
+    restart: on-failure
     network_mode: host
     volumes:
       - ~/.hermes:/opt/data
     environment:
       - HERMES_UID=${HERMES_UID:-10000}
       - HERMES_GID=${HERMES_GID:-10000}
+      - HERMES_GATEWAY_NO_SUPERVISE=1
       # To expose the OpenAI-compatible API server beyond localhost,
       # uncomment BOTH lines (API_SERVER_KEY is mandatory for auth):
       # - API_SERVER_HOST=0.0.0.0
@@ -58,12 +59,12 @@ services:
       # - GOOGLE_CHAT_SUBSCRIPTION_NAME=${GOOGLE_CHAT_SUBSCRIPTION_NAME}
       # - GOOGLE_CHAT_SERVICE_ACCOUNT_JSON=${GOOGLE_CHAT_SERVICE_ACCOUNT_JSON}
       # - GOOGLE_CHAT_ALLOWED_USERS=${GOOGLE_CHAT_ALLOWED_USERS}
-    command: ["gateway", "run"]
+    command: ["gateway", "run", "--replace"]
 
   dashboard:
     image: hermes-agent
     container_name: hermes-dashboard
-    restart: unless-stopped
+    restart: "no"
     network_mode: host
     depends_on:
       - gateway
