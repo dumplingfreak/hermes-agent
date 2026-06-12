@@ -116,6 +116,24 @@ if [ -d "$HERMES_HOME/profiles" ]; then
     chown -R hermes:hermes "$HERMES_HOME/profiles" 2>/dev/null || true
 fi
 
+# Always reset ownership for Hermes-owned runtime data. The top-level
+# $HERMES_HOME can already be owned by hermes while individual files were
+# created as root by manual `docker exec` commands; cron jobs.json, model
+# caches, and the vault git index all break in that state.
+for sub in cron sessions logs hooks memories skills scripts skins plans workspace home profiles vault; do
+    if [ -e "$HERMES_HOME/$sub" ]; then
+        chown -R hermes:hermes "$HERMES_HOME/$sub" 2>/dev/null || true
+    fi
+done
+for file in \
+    ".gateway-takeover.json" \
+    "provider_models_cache.json" \
+    "ollama_cloud_models_cache.json"; do
+    if [ -e "$HERMES_HOME/$file" ]; then
+        chown hermes:hermes "$HERMES_HOME/$file" 2>/dev/null || true
+    fi
+done
+
 # --- config.yaml permissions ---
 # Ensure config.yaml is readable by the hermes runtime user even if it
 # was edited on the host after initial ownership setup.
