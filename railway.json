@@ -1,1 +1,11 @@
-{"deploy":{"startCommand":"hermes gateway run --replace"}}
+{
+  "deploy": {
+    "startCommand": "hermes gateway run --replace",
+    "numReplicas": 0,
+    "multiRegionConfig": {
+      "us-west2": {
+        "numReplicas": 0
+      }
+    }
+  }
+}
