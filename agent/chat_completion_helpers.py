@@ -1278,8 +1278,20 @@ def try_activate_fallback(agent, reason: "FailoverReason | None" = None) -> bool
 
 
 def handle_max_iterations(agent, messages: list, api_call_count: int) -> str:
-    """Request a summary when max iterations are reached. Returns the final response text."""
-    print(f"⚠️  Reached maximum iterations ({agent.max_iterations}). Requesting summary...")
+    """Stop immediately when max iterations are reached.
+
+    In gateway/chat use, the conversation history can already be very large
+    when this guard fires. Do not make another model call to summarize that
+    full context; that is exactly the failure mode that can burn credits in a
+    loop.
+    """
+    final_response = (
+        f"Stopped: reached the hard iteration limit "
+        f"({api_call_count}/{agent.max_iterations}). No summary call was made."
+    )
+    print(f"⚠️  {final_response}")
+    messages.append({"role": "assistant", "content": final_response})
+    return final_response
 
     summary_request = (
         "You've reached the maximum number of tool-calling iterations allowed. "

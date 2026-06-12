@@ -313,6 +313,57 @@ class WhatsAppAdapter(BasePlatformAdapter):
             return {str(part).strip() for part in raw if str(part).strip()}
         return {part.strip() for part in str(raw).split(",") if part.strip()}
 
+    def _budi_chats(self) -> set[str]:
+        raw = self.config.extra.get("budi_chats") or []
+        if isinstance(raw, list):
+            return {str(part).strip() for part in raw if str(part).strip()}
+        return {part.strip() for part in str(raw).split(",") if part.strip()}
+
+    def _budi_state_file(self) -> Path:
+        return self._session_path.parent / "budi_state.json"
+
+    def _load_budi_state(self) -> Dict[str, Any]:
+        try:
+            path = self._budi_state_file()
+            if path.exists():
+                data = json.loads(path.read_text())
+                if isinstance(data, dict):
+                    return data
+        except Exception as exc:
+            logger.warning("[%s] Could not read Budi state: %s", self.name, exc)
+        return {}
+
+    def _save_budi_state(self, state: Dict[str, Any]) -> None:
+        try:
+            path = self._budi_state_file()
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(state, ensure_ascii=False, indent=2))
+        except Exception as exc:
+            logger.warning("[%s] Could not write Budi state: %s", self.name, exc)
+
+    def _is_budi_paused(self, chat_id: str) -> bool:
+        state = self._load_budi_state()
+        return bool((state.get("paused_chats") or {}).get(chat_id))
+
+    def _set_budi_paused(self, chat_id: str, paused: bool) -> None:
+        state = self._load_budi_state()
+        paused_chats = state.setdefault("paused_chats", {})
+        if paused:
+            paused_chats[chat_id] = True
+        else:
+            paused_chats.pop(chat_id, None)
+        self._save_budi_state(state)
+
+    def _budi_control_action(self, text: str) -> Optional[str]:
+        body = (text or "").strip().lower()
+        if not re.search(r"(^|\s)@?budi\b", body):
+            return None
+        if re.search(r"\b(stop|wait|pause|silent|silence)\b", body):
+            return "pause"
+        if re.search(r"\b(speak|talk|resume|continue)\b", body):
+            return "speak"
+        return None
+
     @staticmethod
     def _coerce_allow_list(raw) -> set[str]:
         """Parse allow_from / group_allow_from from config or env var."""
@@ -470,13 +521,29 @@ class WhatsAppAdapter(BasePlatformAdapter):
                 return False
             # DMs that pass the policy gate are always processed
             return True
-        # Group messages: check mention / free-response settings
+        # Group messages: Budi groups talk by default. Gia can pause Budi with
+        # "@Budi stop" / "@Budi wait" and resume with "@Budi speak".
+        # Translator groups must not be Budi-gated.
         chat_id = str(data.get("chatId") or "")
+        body = str(data.get("body") or "").strip()
+        if chat_id in self._budi_chats():
+            action = self._budi_control_action(body)
+            if action == "pause":
+                self._set_budi_paused(chat_id, True)
+                logger.info("[%s] Budi paused for WhatsApp chat %s", self.name, chat_id)
+                return False
+            if action == "speak":
+                self._set_budi_paused(chat_id, False)
+                logger.info("[%s] Budi resumed for WhatsApp chat %s", self.name, chat_id)
+                return True
+            if self._is_budi_paused(chat_id):
+                return False
+            return True
+
         if chat_id in self._whatsapp_free_response_chats():
             return True
         if not self._whatsapp_require_mention():
             return True
-        body = str(data.get("body") or "").strip()
         if body.startswith("/"):
             return True
         if self._message_is_reply_to_bot(data):
@@ -884,6 +951,9 @@ class WhatsAppAdapter(BasePlatformAdapter):
             return SendResult(success=False, error=bridge_exit)
 
         if not content or not content.strip():
+            return SendResult(success=True, message_id=None)
+        if str(content or "").strip().upper() == "NO_REPLY":
+            logger.info("[%s] Suppressing NO_REPLY sentinel", self.name)
             return SendResult(success=True, message_id=None)
 
         try:
