@@ -319,6 +319,48 @@ class WhatsAppAdapter(BasePlatformAdapter):
             return {str(part).strip() for part in raw if str(part).strip()}
         return {part.strip() for part in str(raw).split(",") if part.strip()}
 
+    def _translator_chats(self) -> set[str]:
+        prompts = self.config.extra.get("channel_prompts") or {}
+        if not isinstance(prompts, dict):
+            return set()
+        return {
+            str(chat_id).strip()
+            for chat_id, prompt in prompts.items()
+            if str(chat_id).strip() and "TRANSLATOR" in str(prompt or "").upper()
+        }
+
+    def _sanitize_translator_response(self, chat_id: str, content: str) -> str:
+        if chat_id not in self._translator_chats():
+            return content
+        text = str(content or "").strip()
+        if not text:
+            return content
+
+        # Drop common model meta-prefaces while preserving the actual translation.
+        text = re.sub(
+            r"(?is)^the user(?:\s*\([^)]*\))?\s+(?:asked|wrote|said).*?(?:translate|translation).*?:\s*\n+",
+            "",
+            text,
+        ).strip()
+        text = re.sub(r"(?is)^translation\s*:\s*", "", text).strip()
+        text = re.sub(r"(?is)^(?:russian|english)\s+translation\s*:\s*", "", text).strip()
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        if len(lines) > 1:
+            first = lines[0].lower()
+            if (
+                ("user" in first and ("asked" in first or "said" in first or "wrote" in first))
+                or "translate" in first
+                or "translation" in first
+            ):
+                text = "\n".join(lines[1:]).strip()
+
+        # If the model answered its role instead of translating, suppress it.
+        # The tightened prompt should prevent this; this guard stops bad leaks.
+        if re.match(r"(?is)^(yes|no)[,.\s].*(translat|role|acting as)", text):
+            logger.info("[%s] Suppressing translator meta-answer for WhatsApp chat %s", self.name, chat_id)
+            return "NO_REPLY"
+        return text
+
     def _budi_state_file(self) -> Path:
         return self._session_path.parent / "budi_state.json"
 
@@ -358,7 +400,7 @@ class WhatsAppAdapter(BasePlatformAdapter):
         body = (text or "").strip().lower()
         if not re.search(r"(^|\s)@?budi\b", body):
             return None
-        if re.search(r"\b(stop|wait|pause|silent|silence)\b", body):
+        if re.search(r"\b(stop|wait|hold|pause|silent|silence|freeze)\b", body):
             return "pause"
         if re.search(r"\b(speak|talk|resume|continue)\b", body):
             return "speak"
@@ -521,9 +563,8 @@ class WhatsAppAdapter(BasePlatformAdapter):
                 return False
             # DMs that pass the policy gate are always processed
             return True
-        # Group messages: Budi groups talk by default. Gia can pause Budi with
-        # "@Budi stop" / "@Budi wait" and resume with "@Budi speak".
-        # Translator groups must not be Budi-gated.
+        # Group messages: Budi groups are mention-gated. Translator groups
+        # remain automatic because they are not listed in budi_chats.
         chat_id = str(data.get("chatId") or "")
         body = str(data.get("body") or "").strip()
         if chat_id in self._budi_chats():
@@ -532,13 +573,23 @@ class WhatsAppAdapter(BasePlatformAdapter):
                 self._set_budi_paused(chat_id, True)
                 logger.info("[%s] Budi paused for WhatsApp chat %s", self.name, chat_id)
                 return False
+            addressed = (
+                body.startswith("/")
+                or self._message_is_reply_to_bot(data)
+                or self._message_mentions_bot(data)
+                or self._message_matches_mention_patterns(data)
+            )
             if action == "speak":
                 self._set_budi_paused(chat_id, False)
                 logger.info("[%s] Budi resumed for WhatsApp chat %s", self.name, chat_id)
                 return True
             if self._is_budi_paused(chat_id):
+                if addressed:
+                    self._set_budi_paused(chat_id, False)
+                    logger.info("[%s] Budi resumed by mention for WhatsApp chat %s", self.name, chat_id)
+                    return True
                 return False
-            return True
+            return addressed
 
         if chat_id in self._whatsapp_free_response_chats():
             return True
@@ -951,6 +1002,9 @@ class WhatsAppAdapter(BasePlatformAdapter):
             return SendResult(success=False, error=bridge_exit)
 
         if not content or not content.strip():
+            return SendResult(success=True, message_id=None)
+        content = self._sanitize_translator_response(chat_id, content)
+        if not content or not str(content).strip():
             return SendResult(success=True, message_id=None)
         if str(content or "").strip().upper() == "NO_REPLY":
             logger.info("[%s] Suppressing NO_REPLY sentinel", self.name)
