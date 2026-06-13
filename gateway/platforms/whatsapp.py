@@ -356,7 +356,7 @@ class WhatsAppAdapter(BasePlatformAdapter):
 
         # If the model answered its role instead of translating, suppress it.
         # The tightened prompt should prevent this; this guard stops bad leaks.
-        if re.match(r"(?is)^(yes|no)[,.\s].*(translat|role|acting as)", text):
+        if re.match(r"(?is)^(yes|no)[,.\s].*(translat|role|acting as)", text) or re.match(r"(?is)^(understood|ok|okay)[,.\s].*(switch|normal mode|translator)", text):
             logger.info("[%s] Suppressing translator meta-answer for WhatsApp chat %s", self.name, chat_id)
             return "NO_REPLY"
         return text
@@ -394,6 +394,19 @@ class WhatsAppAdapter(BasePlatformAdapter):
             paused_chats[chat_id] = True
         else:
             paused_chats.pop(chat_id, None)
+        self._save_budi_state(state)
+
+    def _is_budi_active(self, chat_id: str) -> bool:
+        state = self._load_budi_state()
+        return bool((state.get("active_chats") or {}).get(chat_id))
+
+    def _set_budi_active(self, chat_id: str, active: bool) -> None:
+        state = self._load_budi_state()
+        active_chats = state.setdefault("active_chats", {})
+        if active:
+            active_chats[chat_id] = True
+        else:
+            active_chats.pop(chat_id, None)
         self._save_budi_state(state)
 
     def _budi_control_action(self, text: str) -> Optional[str]:
@@ -571,6 +584,7 @@ class WhatsAppAdapter(BasePlatformAdapter):
             action = self._budi_control_action(body)
             if action == "pause":
                 self._set_budi_paused(chat_id, True)
+                self._set_budi_active(chat_id, False)
                 logger.info("[%s] Budi paused for WhatsApp chat %s", self.name, chat_id)
                 return False
             addressed = (
@@ -581,15 +595,20 @@ class WhatsAppAdapter(BasePlatformAdapter):
             )
             if action == "speak":
                 self._set_budi_paused(chat_id, False)
+                self._set_budi_active(chat_id, True)
                 logger.info("[%s] Budi resumed for WhatsApp chat %s", self.name, chat_id)
                 return True
             if self._is_budi_paused(chat_id):
                 if addressed:
                     self._set_budi_paused(chat_id, False)
+                    self._set_budi_active(chat_id, True)
                     logger.info("[%s] Budi resumed by mention for WhatsApp chat %s", self.name, chat_id)
                     return True
                 return False
-            return addressed
+            if addressed:
+                self._set_budi_active(chat_id, True)
+                return True
+            return self._is_budi_active(chat_id)
 
         if chat_id in self._whatsapp_free_response_chats():
             return True
