@@ -11812,9 +11812,7 @@ class GatewayRunner:
                 return
 
             platform_key = _platform_config_key(source.platform)
-
-            from hermes_cli.tools_config import _get_platform_tools
-            enabled_toolsets = sorted(_get_platform_tools(user_config, platform_key))
+            enabled_toolsets = self._get_toolsets_for_source(user_config, source)
             agent_cfg = user_config.get("agent") or {}
             disabled_toolsets = agent_cfg.get("disabled_toolsets") or None
 
@@ -15929,6 +15927,56 @@ class GatewayRunner:
 
     # ------------------------------------------------------------------
 
+    # WhatsApp toolset routing — per-channel tool restrictions
+    _WHATSAPP_TOOLSET_MAP: Dict[str, List[str]] = {
+        # Translator chats: messaging-only (no web/terminal/file)
+        "120363409460109050@g.us": ["hermes-whatsapp-messaging"],
+        "120363429598358128@g.us": ["hermes-whatsapp-messaging"],
+        # Budi finance chat: full toolset
+        "120363426827954611@g.us": ["hermes-whatsapp-full"],
+    }
+
+    def _resolve_whatsapp_toolsets(self, source: "SessionSource", platform_toolsets: List[str]) -> List[str]:
+        """Filter enabled toolsets per WhatsApp channel.
+
+        Overrides the platform-level toolsets with channel-specific ones when
+        the source is a WhatsApp group that has a dedicated toolset mapping.
+        Falls back to the platform defaults for unknown channels.
+        """
+        from hermes_cli.tools_config import (
+            _get_platform_tools,
+        )
+
+        if getattr(source, "platform", None) is None or not hasattr(source, "chat_id"):
+            return platform_toolsets
+        try:
+            platform_name = source.platform.value if hasattr(source.platform, "value") else str(source.platform)
+        except Exception:
+            return platform_toolsets
+
+        if platform_name != "whatsapp":
+            return platform_toolsets
+
+        chat_id = str(source.chat_id).strip() if source.chat_id else ""
+        mapped = self._WHATSAPP_TOOLSET_MAP.get(chat_id)
+        if mapped is not None:
+            logger.debug("[toolset] WhatsApp channel %s → %s", chat_id, mapped)
+            # Resolve the mapped toolsets via the standard resolver (handles includes)
+            # so we get the full tool list, not just toolset names.
+            return sorted(mapped)
+        logger.debug("[toolset] WhatsApp channel %s → using platform defaults", chat_id)
+        return platform_toolsets
+
+    def _get_toolsets_for_source(
+        self, user_config: dict, source: "SessionSource"
+    ) -> List[str]:
+        """Resolve enabled toolsets for a given source, with per-channel overrides."""
+        from hermes_cli.tools_config import _get_platform_tools
+
+        platform_key = _platform_config_key(source.platform)
+        base_toolsets = sorted(_get_platform_tools(user_config, platform_key))
+        return self._resolve_whatsapp_toolsets(source, base_toolsets)
+
     async def _run_agent(
         self,
         message: str,
@@ -15977,9 +16025,7 @@ class GatewayRunner:
         
         user_config = _load_gateway_config()
         platform_key = _platform_config_key(source.platform)
-
-        from hermes_cli.tools_config import _get_platform_tools
-        enabled_toolsets = sorted(_get_platform_tools(user_config, platform_key))
+        enabled_toolsets = self._get_toolsets_for_source(user_config, source)
         agent_cfg_local = user_config.get("agent") or {}
         disabled_toolsets = agent_cfg_local.get("disabled_toolsets") or None
 

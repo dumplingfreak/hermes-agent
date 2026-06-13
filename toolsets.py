@@ -433,7 +433,31 @@ TOOLSETS = {
         "tools": _HERMES_CORE_TOOLS,
         "includes": []
     },
-    
+
+    "hermes-whatsapp-full": {
+        "description": "WhatsApp full toolset for Budi finance assistant - messaging + web + vision",
+        "tools": [
+            "send_message",
+            "clarify",
+            "web_search", "web_extract",
+            "vision_analyze",
+            "todo", "memory",
+            "session_search",
+            "skills_list", "skill_view",
+            "text_to_speech",
+        ],
+        "includes": []
+    },
+
+    "hermes-whatsapp-messaging": {
+        "description": "WhatsApp messaging-only toolset for translator bots - no web, terminal, or file access",
+        "tools": [
+            "send_message",
+            "clarify",
+        ],
+        "includes": []
+    },
+
     "hermes-slack": {
         "description": "Slack bot toolset - full access for workspace use (terminal has safety checks)",
         "tools": _HERMES_CORE_TOOLS,
