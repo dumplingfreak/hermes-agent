@@ -435,16 +435,14 @@ TOOLSETS = {
     },
 
     "hermes-whatsapp-full": {
-        "description": "WhatsApp full toolset for Budi finance assistant - messaging + web + vision",
+        "description": "WhatsApp full toolset for Budi finance assistant - messaging + web + vision + vault file read/search",
         "tools": [
             "send_message",
             "clarify",
             "web_search", "web_extract",
+            "read_file", "search_files",
             "vision_analyze",
-            "todo", "memory",
             "session_search",
-            "skills_list", "skill_view",
-            "text_to_speech",
         ],
         "includes": []
     },
