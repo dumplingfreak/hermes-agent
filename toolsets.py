@@ -443,6 +443,7 @@ TOOLSETS = {
             "read_file", "search_files",
             "vision_analyze",
             "session_search",
+            "text_to_speech",
         ],
         "includes": []
     },
