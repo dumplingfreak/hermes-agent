@@ -296,3 +296,14 @@ if [ -f "$INSTALL_DIR/docker/cron/seed-decision-cron.py" ]; then
 fi
 
 echo "[stage2] Setup complete; starting user services"
+
+if [ -d "$HERMES_HOME" ]; then
+    chown -R hermes:hermes "$HERMES_HOME" 2>/dev/null || true
+fi
+
+# Keep the VPS vault git clone writable by the unprivileged Hermes user.
+# Root-owned objects break `git pull` and make the agent think the wiki/news
+# brain is unavailable.
+if [ -d "$HERMES_HOME/vault/.git" ]; then
+    chown -R hermes:hermes "$HERMES_HOME/vault" 2>/dev/null || true
+fi

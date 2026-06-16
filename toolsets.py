@@ -414,8 +414,16 @@ TOOLSETS = {
     },
 
     "hermes-telegram": {
-        "description": "Telegram bot toolset - full access for personal use (terminal has safety checks)",
-        "tools": _HERMES_CORE_TOOLS,
+        "description": "Telegram bot toolset - local vault/wiki first; no web unless operator enables it separately",
+        "tools": [
+            "send_message",
+            "clarify",
+            "read_file", "search_files",
+            "vision_analyze",
+            "session_search",
+            "todo",
+            "text_to_speech",
+        ],
         "includes": []
     },
     
