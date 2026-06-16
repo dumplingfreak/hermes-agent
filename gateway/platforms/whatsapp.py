@@ -1327,6 +1327,23 @@ class WhatsAppAdapter(BasePlatformAdapter):
                 user_name=data.get("senderName"),
             )
             
+            # Translator chats are strict text/voice translators. Do not pass
+            # photos/videos/documents to the agent, otherwise multimodal models
+            # may analyze or reason about the media instead of translating.
+            body = data.get("body", "")
+            is_translator_chat = str(data.get("chatId") or "") in self._translator_chats()
+            if is_translator_chat and msg_type not in {MessageType.TEXT, MessageType.VOICE}:
+                caption = str(body or "").strip()
+                media_name = str(data.get("mediaType") or "media").strip().lower()
+                placeholder = f"[{media_name} received]"
+                placeholder_names = {"[image received]", "[video received]", "[document received]", "[media received]"}
+                if not caption or caption.lower() == placeholder.lower() or caption.lower() in placeholder_names:
+                    logger.info("[%s] Ignoring non-text/non-voice translator media in WhatsApp chat %s", self.name, data.get("chatId"))
+                    return None
+                logger.info("[%s] Stripping translator media and translating caption only in WhatsApp chat %s", self.name, data.get("chatId"))
+                body = caption
+                msg_type = MessageType.TEXT
+
             # Download media URLs to the local cache so agent tools
             # can access them reliably regardless of URL expiration.
             raw_urls = data.get("mediaUrls", [])
