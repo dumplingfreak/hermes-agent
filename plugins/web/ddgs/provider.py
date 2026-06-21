@@ -48,13 +48,75 @@ class DDGSWebSearchProvider(WebSearchProvider):
 
             return True
         except ImportError:
-            return False
+            try:
+                from tools.lazy_deps import ensure
+
+                ensure("search.ddgs")
+                import ddgs  # noqa: F401
+
+                return True
+            except Exception:
+                return False
 
     def supports_search(self) -> bool:
         return True
 
     def supports_extract(self) -> bool:
-        return False
+        return True
+
+    def extract(self, urls: list[str], **kwargs: Any) -> list[Dict[str, Any]]:
+        """Extract readable content from one or more URLs using ddgs.extract."""
+        try:
+            from ddgs import DDGS  # type: ignore
+        except ImportError:
+            return [
+                {
+                    "url": str(url),
+                    "title": "",
+                    "content": "",
+                    "raw_content": "",
+                    "error": "ddgs package is not installed - run `uv pip install ddgs`",
+                }
+                for url in urls
+            ]
+
+        results: list[Dict[str, Any]] = []
+        try:
+            with DDGS() as client:
+                for url in urls:
+                    try:
+                        hit = client.extract(str(url))
+                        content = str(hit.get("content") or hit.get("text") or "") if isinstance(hit, dict) else str(hit or "")
+                        title = str(hit.get("title") or "") if isinstance(hit, dict) else ""
+                        results.append({
+                            "url": str(url),
+                            "title": title,
+                            "content": content,
+                            "raw_content": content,
+                            "metadata": {"provider": "ddgs"},
+                        })
+                    except Exception as exc:  # noqa: BLE001
+                        results.append({
+                            "url": str(url),
+                            "title": "",
+                            "content": "",
+                            "raw_content": "",
+                            "error": f"DDGS extract failed: {exc}",
+                        })
+        except Exception as exc:  # noqa: BLE001
+            return [
+                {
+                    "url": str(url),
+                    "title": "",
+                    "content": "",
+                    "raw_content": "",
+                    "error": f"DDGS extract failed: {exc}",
+                }
+                for url in urls
+            ]
+
+        logger.info("DDGS extract: %d URL(s)", len(results))
+        return results
 
     def search(self, query: str, limit: int = 5) -> Dict[str, Any]:
         """Execute a DuckDuckGo search and return normalized results."""
