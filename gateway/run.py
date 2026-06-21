@@ -2428,6 +2428,30 @@ class GatewayRunner:
             except Exception:
                 pass
 
+        if source is not None and isinstance(user_config, dict):
+            try:
+                platform_name = (
+                    source.platform.value
+                    if hasattr(source.platform, "value")
+                    else str(source.platform)
+                )
+                chat_id = str(getattr(source, "chat_id", "") or "").strip()
+                channel_models = (
+                    (user_config.get("whatsapp") or {}).get("channel_models")
+                    or {}
+                )
+                channel_model = str(channel_models.get(chat_id) or "").strip()
+                if platform_name == "whatsapp" and channel_model and channel_model != model:
+                    logger.info(
+                        "WhatsApp channel model override: chat=%s %s -> %s",
+                        chat_id,
+                        model,
+                        channel_model,
+                    )
+                    model = channel_model
+            except Exception as exc:
+                logger.debug("WhatsApp channel model override skipped: %s", exc)
+
         return model, runtime_kwargs
 
     def _resolve_turn_agent_config(self, user_message: str, model: str, runtime_kwargs: dict) -> dict:
@@ -15134,6 +15158,7 @@ class GatewayRunner:
         ("compression", "target_ratio"),
         ("compression", "protect_last_n"),
         ("agent", "disabled_toolsets"),
+        ("whatsapp", "channel_models"),
     )
 
     @classmethod
