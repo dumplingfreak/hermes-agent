@@ -1473,11 +1473,11 @@ def setup_agent_settings(config: dict):
     # config.yaml is authoritative; read from there. If a legacy .env
     # entry is still around (from pre-PR#18413 setups), prefer the
     # config value so we don't surface a stale number to the user.
-    current_max = str(cfg_get(config, "agent", "max_turns", default=90))
+    current_max = str(cfg_get(config, "agent", "max_turns", default=30))
     print_info("Maximum tool-calling iterations per conversation.")
     print_info("Higher = more complex tasks, but costs more tokens.")
     print_info(
-        f"Press Enter to keep {current_max}. Use 90 for most tasks or 150+ for open exploration."
+        f"Press Enter to keep {current_max}. Use 30 for most tasks or 80+ for open exploration."
     )
 
     max_iter_str = prompt("Max iterations", current_max)
@@ -2495,7 +2495,7 @@ def _get_section_config_summary(config: dict, section_key: str) -> Optional[str]
         return f"backend: {backend}"
 
     elif section_key == "agent":
-        max_turns = cfg_get(config, "agent", "max_turns", default=90)
+        max_turns = cfg_get(config, "agent", "max_turns", default=30)
         return f"max turns: {max_turns}"
 
     elif section_key == "gateway":

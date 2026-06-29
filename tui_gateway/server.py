@@ -3688,7 +3688,7 @@ def _make_agent(
     _pr = _load_provider_routing()
     return AIAgent(
         model=model,
-        max_iterations=_cfg_max_turns(cfg, 90),
+        max_iterations=_cfg_max_turns(cfg, 30),
         provider=runtime.get("provider"),
         base_url=runtime.get("base_url"),
         api_key=runtime.get("api_key"),
@@ -10499,7 +10499,7 @@ def _(rid, params: dict) -> dict:
             {
                 "title": "Agent",
                 "rows": [
-                    ["Max Turns", str(_cfg_max_turns(cfg, 90))],
+                    ["Max Turns", str(_cfg_max_turns(cfg, 30))],
                     ["Toolsets", ", ".join(cfg.get("enabled_toolsets", [])) or "all"],
                     ["Verbose", str(cfg.get("verbose", False))],
                 ],

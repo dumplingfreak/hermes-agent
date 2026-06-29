@@ -890,7 +890,7 @@ DEFAULT_CONFIG = {
     # None/0 = unbounded.
     "max_concurrent_sessions": None,
     "agent": {
-        "max_turns": 90,
+        "max_turns": 30,
         # Inactivity timeout for gateway agent execution (seconds).
         # The agent can run indefinitely as long as it's actively calling
         # tools or receiving API responses.  Only fires when the agent has
